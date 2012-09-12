@@ -397,6 +397,11 @@ void QQuerySetPrivate::exploreModel(QModel *model, QForeignKeyPrivate *referrer)
         QForeignKeyPrivate *key = subkeys.at(i);
         QModel *submodel = key->value();
 
+        // If the current relation can be NULL, the sub-relations
+        // can also be NULL
+        if (referrer && referrer->acceptsNull())
+            key->setAcceptsNull(true);
+
         if (submodel)
         {
             // Select-related or involved in a condition
