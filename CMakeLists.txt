@@ -46,6 +46,7 @@ qt4_automoc(${qtorm_SRCS})
 
 # Bibliothèque statique
 add_library(qtorm_static STATIC ${qtorm_SRCS})
+handle_pch(qtorm_static)
 
 # Installation
 install(TARGETS qtorm_static ARCHIVE DESTINATION /usr/lib)
