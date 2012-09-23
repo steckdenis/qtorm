@@ -39,6 +39,7 @@ class QForeignKey : public QField
         ~QForeignKey();
 
         QForeignKey &operator=(const QVariant &value);
+        T *value() const;
         T *operator->() const;
 
         _Q_F_ASSIGN(QForeignKey)
@@ -89,7 +90,7 @@ T *QForeignKey<T>::checkValue() const
 }
 
 template<typename T>
-T *QForeignKey<T>::operator->() const
+T *QForeignKey<T>::value() const
 {
     T *rs = checkValue();
 
@@ -101,6 +102,12 @@ T *QForeignKey<T>::operator->() const
     }
 
     return rs;
+}
+
+template<typename T>
+T *QForeignKey<T>::operator->() const
+{
+    return value();
 }
 
 template<typename T>
