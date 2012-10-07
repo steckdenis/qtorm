@@ -60,10 +60,10 @@ class QQuerySet
 template<typename T>
 void QQuerySet::addSelectRelated(const QForeignKey<T> &field)
 {
-    addSelectRelated_p(field);
-
     // Force the field to build its value
     field.checkValue();
+
+    addSelectRelated_p(field);
 }
 
 #endif
