@@ -170,7 +170,7 @@ void QQuerySetPrivate::build(bool for_remove)
                 .arg(driver->escapeIdentifier(model->tableName(), QSqlDriver::TableName))
                 .arg(model->tableNumber())
                 .arg(model->pk().fieldName())
-                .arg(QField(referrer).fieldName());
+                .arg(QField(referrer, true).fieldName());
         }
     }
 

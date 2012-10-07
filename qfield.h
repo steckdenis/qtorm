@@ -82,7 +82,7 @@ class QField
         QAssign assignation() const;
 
     protected:
-        QField(QFieldPrivate *dptr);
+        QField(QFieldPrivate *dptr, bool reference = false);
         QFieldPrivate *d;
 };
 

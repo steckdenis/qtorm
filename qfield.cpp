@@ -161,8 +161,10 @@ QField::QField() : d(NULL)
 {
 }
 
-QField::QField(QFieldPrivate *dptr) : d(dptr)
+QField::QField(QFieldPrivate *dptr, bool reference) : d(dptr)
 {
+    if (reference && d)
+        d->ref();
 }
 
 QField::QField(const QField &other) : d(other.d)
