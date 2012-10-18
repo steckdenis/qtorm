@@ -28,14 +28,21 @@
 #include <QtDebug>
 
 QForeignKeyPrivate::QForeignKeyPrivate(QModel *model, const QString &name)
- : QFieldPrivate(model, name), _value(NULL), _id(QVariant(QVariant::Int))
+ : QFieldPrivate(model, name),
+   _value(NULL),
+   _id(QVariant(QVariant::Int)),
+   _delete_value(true)
 {
-
 }
 
 QForeignKeyPrivate::~QForeignKeyPrivate()
 {
-    if (_value)
+    deleteValue();
+}
+
+void QForeignKeyPrivate::deleteValue()
+{
+    if (_delete_value && _value)
         delete _value;
 }
 
@@ -47,6 +54,11 @@ bool QForeignKeyPrivate::isForeignKey() const
 QModel *QForeignKeyPrivate::value()
 {
     return _value;
+}
+
+void QForeignKeyPrivate::setDeleteValue(bool enable)
+{
+    _delete_value = enable;
 }
 
 void QForeignKeyPrivate::fillCache() const
@@ -68,8 +80,7 @@ void QForeignKeyPrivate::setValue(QModel *value)
     setNull(false); // The field is not null anymore
     setModified(true);
 
-    if (_value != value)
-        delete _value;
+    deleteValue();
 
     // Update our current child model ID
     _value = value;
@@ -83,8 +94,7 @@ void QForeignKeyPrivate::setValue(const QVariant &data)
     setNull(data.isNull());
     setModified(true);
 
-    if (_value)
-        delete _value;
+    deleteValue();
 
     _value = NULL;
 }

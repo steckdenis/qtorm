@@ -42,6 +42,8 @@ class QForeignKey : public QField
         T *value() const;
         T *operator->() const;
 
+        void setDelegate(T *model);    /*!< @brief Define a model that will contain the target data of this foreign key, instead of a default one instanced as needed */
+
         _Q_F_ASSIGN(QForeignKey)
 
     private:
@@ -75,6 +77,15 @@ QForeignKey<T> &QForeignKey<T>::operator=(const QVariant &value)
 }
 
 template<typename T>
+void QForeignKey<T>::setDelegate(T *model)
+{
+    dptr()->setValue(model);
+
+    // Don't delete this model
+    dptr()->setDeleteValue(false);
+}
+
+template<typename T>
 T *QForeignKey<T>::checkValue() const
 {
     T *rs = (T *)dptr()->value();
@@ -84,6 +95,9 @@ T *QForeignKey<T>::checkValue() const
         // Instantiate a child model (currently unbound)
         rs = new T;
         dptr()->setValue(rs);
+
+        // We can delete this submodel (we come here after a setDelegate(NULL))
+        dptr()->setDeleteValue(true);
     }
 
     return rs;

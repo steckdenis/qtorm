@@ -25,6 +25,8 @@
 
 #include "qfield_p.h"
 
+class QModel;
+
 class QForeignKeyPrivate : public QFieldPrivate
 {
     public:
@@ -34,6 +36,7 @@ class QForeignKeyPrivate : public QFieldPrivate
         void setValue(QModel *value);
         void setValue(const QVariant &value);
         QModel *value();
+        void setDeleteValue(bool enable);
         void fillCache() const;
 
         void fromData(const QVariant &data);
@@ -44,8 +47,12 @@ class QForeignKeyPrivate : public QFieldPrivate
         void foreignInit();
 
     private:
+        void deleteValue();
+
+    private:
         QModel *_value;
         QVariant _id;
+        bool _delete_value;
 };
 
 #endif
