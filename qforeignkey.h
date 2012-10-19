@@ -53,6 +53,9 @@ class QForeignKey : public QField
         QForeignKeyPrivate *dptr() const;
 };
 
+template<> template<typename T>
+Q_DECLARE_TYPEINFO_BODY(QForeignKey<T>, Q_MOVABLE_TYPE);
+
 template<typename T>
 QForeignKey<T>::QForeignKey() : QField(NULL)
 {

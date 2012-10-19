@@ -86,4 +86,6 @@ class QField
         QFieldPrivate *d;
 };
 
+Q_DECLARE_TYPEINFO(QField, Q_MOVABLE_TYPE);
+
 #endif

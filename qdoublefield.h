@@ -43,4 +43,6 @@ class QDoubleField : public QField
         QDoubleFieldPrivate *dptr() const;
 };
 
+Q_DECLARE_TYPEINFO(QDoubleField, Q_MOVABLE_TYPE);
+
 #endif

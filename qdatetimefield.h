@@ -44,4 +44,6 @@ class QDateTimeField : public QField
         QDateTimeFieldPrivate *dptr() const;
 };
 
+Q_DECLARE_TYPEINFO(QDateTimeField, Q_MOVABLE_TYPE);
+
 #endif

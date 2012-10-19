@@ -43,4 +43,6 @@ class QIntField : public QField
         QIntFieldPrivate *dptr() const;
 };
 
+Q_DECLARE_TYPEINFO(QIntField, Q_MOVABLE_TYPE);
+
 #endif

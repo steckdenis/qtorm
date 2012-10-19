@@ -45,4 +45,6 @@ class QStringField : public QField
         QStringFieldPrivate *dptr() const;
 };
 
+Q_DECLARE_TYPEINFO(QStringField, Q_MOVABLE_TYPE);
+
 #endif
