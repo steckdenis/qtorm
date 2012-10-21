@@ -111,11 +111,13 @@ T *QForeignKey<T>::value() const
 {
     T *rs = checkValue();
 
-    if ((rs->pk().isNull() && !dptr()->data().isNull()) ||
-        (rs->pk().data() != dptr()->data()))
+    if (!dptr()->data().isNull())
     {
-        // Need to fill the cache
-        dptr()->fillCache();
+        if (rs->pk().isNull() || rs->pk().data() != dptr()->data())
+        {
+            // Need to fill the cache
+            dptr()->fillCache();
+        }
     }
 
     return rs;

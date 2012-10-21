@@ -88,6 +88,12 @@ class QFDivWhere : public QWhere
         QFDivWhere(const QField &left, int divisor, int offset);
 };
 
+class QFFlagSetWhere : public QWhere
+{
+    public:
+        QFFlagSetWhere(const QField &left, int flag);
+};
+
 class QFIWhere : public QWhere
 {
     public:

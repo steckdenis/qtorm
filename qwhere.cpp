@@ -322,6 +322,47 @@ QFDivWhere::QFDivWhere(const QField &left, int divisor, int offset)
 }
 
 /*
+ * QFFlagSetWhere
+ */
+class QFFlagSetWherePrivate : public QWherePrivate
+{
+    public:
+        QFFlagSetWherePrivate(const QField &left, int flag);
+        ~QFFlagSetWherePrivate();
+
+        QString sql() const;
+        void bindValues(QVariantList &values) const;
+
+    private:
+        QField _f;
+        int _flag;
+};
+
+QFFlagSetWherePrivate::QFFlagSetWherePrivate(const QField &left, int flag)
+: QWherePrivate(QWhere::Like), _f(left), _flag(flag)
+{
+}
+
+QFFlagSetWherePrivate::~QFFlagSetWherePrivate()
+{
+}
+
+QString QFFlagSetWherePrivate::sql() const
+{
+    return QString("((%1 & ?) != 0)").arg(fieldName(_f));
+}
+
+void QFFlagSetWherePrivate::bindValues(QVariantList &values) const
+{
+    values.append(_flag);
+}
+
+QFFlagSetWhere::QFFlagSetWhere(const QField &left, int flag)
+: QWhere(new QFFlagSetWherePrivate(left, flag))
+{
+}
+
+/*
  * QFIWhere
  */
 

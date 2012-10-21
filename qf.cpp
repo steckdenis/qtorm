@@ -147,3 +147,8 @@ QWhere QF::divisibleBy(int divisor, int offset) const
 {
     return QFDivWhere(d->f, divisor, offset);
 }
+
+QWhere QF::flagSet(int flag) const
+{
+    return QFFlagSetWhere(d->f, flag);
+}
