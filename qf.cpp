@@ -128,11 +128,6 @@ QAssign QF::operator/(const QAssign &other)
     return QOpAssign(QAssign(*this), other, QAssign::Div);
 }
 
-QWhere QF::operator>>(const QVariantList &other) const
-{
-    return in(other);
-}
-
 QWhere QF::in(const QVariantList& other) const
 {
     return QFInWhere(d->f, other);

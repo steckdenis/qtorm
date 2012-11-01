@@ -50,7 +50,6 @@ class QF
         QWhere operator>=(const QField &other) const;
 
         QWhere operator!() const;
-        QWhere operator>>(const QVariantList &other) const;
 
         QWhere in(const QVariantList &other) const;
         QWhere like(const QString &pattern) const;
