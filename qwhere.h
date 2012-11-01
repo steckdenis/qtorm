@@ -53,6 +53,23 @@ class QWhere
         QWhere(QWherePrivate *d);
         virtual ~QWhere();
 
+#if defined(__GXX_EXPERIMENTAL_CXX0X__)
+        inline QWhere(QWhere &&other)
+        {
+            d = other.d; other.d = nullptr;
+        }
+
+        inline QWhere &operator=(QWhere &&other)
+        {
+            if (this != &other)
+            {
+                d = other.d;
+                other.d = nullptr;
+            }
+            return *this;
+        }
+#endif
+
         bool isValid() const;
 
         QWhere operator!() const;

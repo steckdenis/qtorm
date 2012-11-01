@@ -51,6 +51,23 @@ class QField
         QField &operator=(const QField &other);
         virtual ~QField();
 
+#if defined(__GXX_EXPERIMENTAL_CXX0X__)
+        inline QField(QField &&other)
+        {
+            d = other.d; other.d = nullptr;
+        }
+
+        inline QField &operator=(QField &&other)
+        {
+            if (this != &other)
+            {
+                d = other.d;
+                other.d = nullptr;
+            }
+            return *this;
+        }
+#endif
+
         QString name() const;
         bool isNull() const;
         bool isValid() const;

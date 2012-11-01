@@ -48,6 +48,23 @@ class QAssign
         QAssign(QAssignPrivate *d);
         virtual ~QAssign();
 
+#if defined(__GXX_EXPERIMENTAL_CXX0X__)
+        inline QAssign(QAssign &&other)
+        {
+            d = other.d; other.d = nullptr;
+        }
+
+        inline QAssign &operator=(QAssign &&other)
+        {
+            if (this != &other)
+            {
+                d = other.d;
+                other.d = nullptr;
+            }
+            return *this;
+        }
+#endif
+
         bool isValid() const;
 
         QAssign operator+(const QAssign &other);
