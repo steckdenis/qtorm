@@ -463,7 +463,7 @@ bool QQuerySet::next()
     return d->next();
 }
 
-int QQuerySet::update(int *affectedRows)
+bool QQuerySet::update(int *affectedRows)
 {
     return d->update(affectedRows);
 }

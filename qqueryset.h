@@ -47,7 +47,7 @@ class QQuerySet
 
         QString sql(bool for_remove = false);
         bool next();
-        int update(int *affectedRows = 0);
+        bool update(int *affectedRows = 0);
         void remove();
         void reset();
 
