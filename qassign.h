@@ -27,6 +27,7 @@
 
 class QF;
 class QAssignPrivate;
+class QSqlDriver;
 
 class QAssign
 {
@@ -75,7 +76,7 @@ class QAssign
         static QString operationStr(Operation op);
 
     public:
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:

@@ -51,6 +51,8 @@ class QField
         QField &operator=(const QField &other);
         virtual ~QField();
 
+        inline bool operator==(const QField &other) const { return d == other.d; }
+
 #if defined(__GXX_EXPERIMENTAL_CXX0X__)
         inline QField(QField &&other)
         {
@@ -101,8 +103,12 @@ class QField
     protected:
         QField(QFieldPrivate *dptr, bool reference = false);
         QFieldPrivate *d;
+
+    friend uint qHash(const QField &field);
 };
 
 Q_DECLARE_TYPEINFO(QField, Q_MOVABLE_TYPE);
+
+uint qHash(const QField &field);
 
 #endif

@@ -23,6 +23,7 @@ set(qtorm_SRCS
     qqueryset.cpp
     qstringfield.cpp
     qwhere.cpp
+    qtormdatabase.cpp
 )
 
 set(qtorm_HEADERS
@@ -39,6 +40,7 @@ set(qtorm_HEADERS
     qqueryset.h
     qstringfield.h
     qwhere.h
+    qtormdatabase.cpp
 )
 
 # Automoc

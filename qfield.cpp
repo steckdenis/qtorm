@@ -28,6 +28,11 @@
 
 #include <QtSql>
 
+uint qHash(const QField &field)
+{
+    return qHash(field.d);
+}
+
 /*
  * QFieldPrivate
  */
@@ -274,11 +279,9 @@ QString QField::sqlDescription() const
 
 QString QField::fieldName() const
 {
-    QSqlDriver *driver = QSqlDatabase::database().driver();
     int tableNumber = d->model()->tableNumber();
-    QString fName = QString("T%0.%1").arg(tableNumber).arg(d->name());
 
-    return driver->escapeIdentifier(fName, QSqlDriver::FieldName);
+    return QString("T%0.%1").arg(tableNumber).arg(d->name());
 }
 
 void QField::setAssignation(const QAssign &assignation)

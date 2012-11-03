@@ -24,6 +24,7 @@
 #include "qfield.h"
 
 #include <QtDebug>
+#include <QSqlDriver>
 
 /*
  * QWhere
@@ -36,12 +37,12 @@ class QWherePrivate
         virtual ~QWherePrivate();
 
         QWhere::Condition condition() const;
-        QString fieldName(const QField &field) const;
+        QString fieldName(const QField &field, QSqlDriver *driver) const;
 
         void ref();
         bool deref();
 
-        virtual QString sql() const = 0;
+        virtual QString sql(QSqlDriver *driver) const = 0;
         virtual void bindValues(QVariantList &values) const = 0;
 
     private:
@@ -74,9 +75,9 @@ bool QWherePrivate::deref()
     return (_refcount != 0);
 }
 
-QString QWherePrivate::fieldName(const QField& field) const
+QString QWherePrivate::fieldName(const QField &field, QSqlDriver *driver) const
 {
-    return field.fieldName();
+    return driver->escapeIdentifier(field.fieldName(), QSqlDriver::FieldName);
 }
 
 QWhere::QWhere() : d(NULL)
@@ -164,9 +165,9 @@ QString QWhere::conditionStr(QWhere::Condition cond)
     return QString();
 }
 
-QString QWhere::sql() const
+QString QWhere::sql(QSqlDriver *driver) const
 {
-    return d->sql();
+    return d->sql(driver);
 }
 
 void QWhere::bindValues(QVariantList &values) const
@@ -184,7 +185,7 @@ class QFInWherePrivate : public QWherePrivate
         QFInWherePrivate(const QField &left, const QVariantList &right);
         ~QFInWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -201,9 +202,9 @@ QFInWherePrivate::~QFInWherePrivate()
 {
 }
 
-QString QFInWherePrivate::sql() const
+QString QFInWherePrivate::sql(QSqlDriver *driver) const
 {
-    QString rs(fieldName(_f));
+    QString rs(fieldName(_f, driver));
 
     rs += QWhere::conditionStr(QWhere::In) + QLatin1String("(");
 
@@ -239,7 +240,7 @@ class QFLikeWherePrivate : public QWherePrivate
         QFLikeWherePrivate(const QField &left, const QString &right);
         ~QFLikeWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -256,13 +257,11 @@ QFLikeWherePrivate::~QFLikeWherePrivate()
 {
 }
 
-QString QFLikeWherePrivate::sql() const
+QString QFLikeWherePrivate::sql(QSqlDriver *driver) const
 {
-    QString rs(fieldName(_f));
+    QString rs(fieldName(_f, driver));
 
-    rs += QWhere::conditionStr(QWhere::Like) + QLatin1String("\"");
-    rs += _pattern;
-    rs += QLatin1String("\"");
+    rs += QWhere::conditionStr(QWhere::Like) + QLatin1String("?");
 
     return rs;
 }
@@ -287,7 +286,7 @@ class QFDivWherePrivate : public QWherePrivate
         QFDivWherePrivate(const QField &left, int divisor, int offset);
         ~QFDivWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -305,9 +304,9 @@ QFDivWherePrivate::~QFDivWherePrivate()
 {
 }
 
-QString QFDivWherePrivate::sql() const
+QString QFDivWherePrivate::sql(QSqlDriver *driver) const
 {
-    return QString("((%1 + ?) % ? = 0)").arg(fieldName(_f));
+    return QString("((%1 + ?) % ? = 0)").arg(fieldName(_f, driver));
 }
 
 void QFDivWherePrivate::bindValues(QVariantList &values) const
@@ -330,7 +329,7 @@ class QFFlagSetWherePrivate : public QWherePrivate
         QFFlagSetWherePrivate(const QField &left, int flag);
         ~QFFlagSetWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -347,9 +346,9 @@ QFFlagSetWherePrivate::~QFFlagSetWherePrivate()
 {
 }
 
-QString QFFlagSetWherePrivate::sql() const
+QString QFFlagSetWherePrivate::sql(QSqlDriver *driver) const
 {
-    return QString("((%1 & ?) != 0)").arg(fieldName(_f));
+    return QString("((%1 & ?) != 0)").arg(fieldName(_f, driver));
 }
 
 void QFFlagSetWherePrivate::bindValues(QVariantList &values) const
@@ -372,7 +371,7 @@ class QFIWherePrivate : public QWherePrivate
         QFIWherePrivate(const QField &left, const QVariant &right, QWhere::Condition cond);
         ~QFIWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -389,9 +388,9 @@ QFIWherePrivate::~QFIWherePrivate()
 {
 }
 
-QString QFIWherePrivate::sql() const
+QString QFIWherePrivate::sql(QSqlDriver *driver) const
 {
-    QString rs(fieldName(_f));
+    QString rs(fieldName(_f, driver));
 
     rs += QWhere::conditionStr(condition());
     rs += QLatin1String("?");
@@ -419,7 +418,7 @@ class QFFWherePrivate : public QWherePrivate
         QFFWherePrivate(const QField &left, const QField &right, QWhere::Condition cond);
         ~QFFWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -436,12 +435,12 @@ QFFWherePrivate::~QFFWherePrivate()
 {
 }
 
-QString QFFWherePrivate::sql() const
+QString QFFWherePrivate::sql(QSqlDriver *driver) const
 {
-    QString rs(fieldName(_left));
+    QString rs(fieldName(_left, driver));
 
     rs += QWhere::conditionStr(condition());
-    rs += fieldName(_right);
+    rs += fieldName(_right, driver);
 
     return rs;
 }
@@ -467,7 +466,7 @@ class QWWWherePrivate : public QWherePrivate
         QWWWherePrivate(const QWhere &left, const QWhere &right, QWhere::Condition cond);
         ~QWWWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -484,15 +483,15 @@ QWWWherePrivate::~QWWWherePrivate()
 {
 }
 
-QString QWWWherePrivate::sql() const
+QString QWWWherePrivate::sql(QSqlDriver *driver) const
 {
     QString rs('(');
 
-    rs += _left.sql();
+    rs += _left.sql(driver);
     rs += ')';
     rs += QWhere::conditionStr(condition());
     rs += '(';
-    rs += _right.sql();
+    rs += _right.sql(driver);
     rs += ')';
 
     return rs;
@@ -519,7 +518,7 @@ class QWWherePrivate : public QWherePrivate
         QWWherePrivate(const QWhere &w, QWhere::Condition cond);
         ~QWWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -535,12 +534,12 @@ QWWherePrivate::~QWWherePrivate()
 {
 }
 
-QString QWWherePrivate::sql() const
+QString QWWherePrivate::sql(QSqlDriver *driver) const
 {
     QString rs(QWhere::conditionStr(condition()));
 
     rs += '(';
-    rs += _w.sql();
+    rs += _w.sql(driver);
     rs += ')';
 
     return rs;
@@ -566,7 +565,7 @@ class QFWherePrivate : public QWherePrivate
         QFWherePrivate(const QField &f, QWhere::Condition cond);
         ~QFWherePrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -582,9 +581,9 @@ QFWherePrivate::~QFWherePrivate()
 {
 }
 
-QString QFWherePrivate::sql() const
+QString QFWherePrivate::sql(QSqlDriver *driver) const
 {
-    QString rs(fieldName(_f));
+    QString rs(fieldName(_f, driver));
 
     rs += QWhere::conditionStr(condition());
 

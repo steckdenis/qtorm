@@ -28,6 +28,8 @@
 class QField;
 class QWherePrivate;
 
+class QSqlDriver;
+
 class QWhere
 {
     public:
@@ -80,7 +82,7 @@ class QWhere
         static QString conditionStr(Condition cond);
 
     public:
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:

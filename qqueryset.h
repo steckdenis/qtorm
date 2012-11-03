@@ -27,6 +27,8 @@
 #include "qf.h"
 #include "qforeignkey.h"
 
+class QSqlDatabase;
+
 class QModel;
 
 class QQuerySet

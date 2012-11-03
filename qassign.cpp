@@ -25,6 +25,7 @@
 #include "qf.h"
 
 #include <QtDebug>
+#include <QSqlDriver>
 
 class QAssignPrivate
 {
@@ -32,12 +33,12 @@ class QAssignPrivate
         QAssignPrivate();
         virtual ~QAssignPrivate();
 
-        QString fieldName(const QField &field) const;
+        QString fieldName(const QField &field, QSqlDriver *driver) const;
 
         void ref();
         bool deref();
 
-        virtual QString sql() const = 0;
+        virtual QString sql(QSqlDriver *driver) const = 0;
         virtual void bindValues(QVariantList &values) const = 0;
 
     private:
@@ -50,7 +51,7 @@ class QFAssignPrivate : public QAssignPrivate
         QFAssignPrivate(const QField &f);
         ~QFAssignPrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -63,7 +64,7 @@ class QIAssignPrivate : public QAssignPrivate
         QIAssignPrivate(const QVariant &value);
         ~QIAssignPrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -76,7 +77,7 @@ class QOpAssignPrivate : public QAssignPrivate
         QOpAssignPrivate(const QAssign &left, const QAssign &right, QAssign::Operation op);
         ~QOpAssignPrivate();
 
-        QString sql() const;
+        QString sql(QSqlDriver *driver) const;
         void bindValues(QVariantList &values) const;
 
     private:
@@ -87,16 +88,15 @@ class QOpAssignPrivate : public QAssignPrivate
 
 QAssignPrivate::QAssignPrivate() : _refcount(1)
 {
-    qDebug() << "new assign";
 }
 
 QAssignPrivate::~QAssignPrivate()
 {
 }
 
-QString QAssignPrivate::fieldName(const QField& field) const
+QString QAssignPrivate::fieldName(const QField& field, QSqlDriver *driver) const
 {
-    return field.fieldName();
+    return driver->escapeIdentifier(field.fieldName(), QSqlDriver::FieldName);
 }
 
 void QAssignPrivate::ref()
@@ -123,7 +123,6 @@ QAssign::QAssign(const QAssign& other) : d(other.d)
 
 QAssign::QAssign(QAssignPrivate* d) : d(d)
 {
-    qDebug() << d;
 }
 
 QAssign::QAssign(const QVariant& value) : d(new QIAssignPrivate(value))
@@ -180,9 +179,9 @@ void QAssign::bindValues(QVariantList& values) const
     d->bindValues(values);
 }
 
-QString QAssign::sql() const
+QString QAssign::sql(QSqlDriver *driver) const
 {
-    return d->sql();
+    return d->sql(driver);
 }
 
 QAssign QAssign::operator+(const QAssign& other)
@@ -222,9 +221,9 @@ void QFAssignPrivate::bindValues(QVariantList& values) const
     return;
 }
 
-QString QFAssignPrivate::sql() const
+QString QFAssignPrivate::sql(QSqlDriver *driver) const
 {
-    return fieldName(_f);
+    return fieldName(_f, driver);
 }
 
 /*
@@ -243,8 +242,10 @@ void QIAssignPrivate::bindValues(QVariantList& values) const
     values.append(_value);
 }
 
-QString QIAssignPrivate::sql() const
+QString QIAssignPrivate::sql(QSqlDriver *driver) const
 {
+    (void) driver;
+
     return QString("?");
 }
 
@@ -254,19 +255,18 @@ QString QIAssignPrivate::sql() const
 QOpAssignPrivate::QOpAssignPrivate(const QAssign &left, const QAssign &right, QAssign::Operation op)
 : QAssignPrivate(), _left(left), _right(right), _op(op)
 {
-    qDebug() << "new opassign";
 }
 
 QOpAssignPrivate::~QOpAssignPrivate()
 {
 }
 
-QString QOpAssignPrivate::sql() const
+QString QOpAssignPrivate::sql(QSqlDriver *driver) const
 {
     return QString("(%0) %1 (%2)")
-        .arg(_left.sql())
+        .arg(_left.sql(driver))
         .arg(QAssign::operationStr(_op))
-        .arg(_right.sql());
+        .arg(_right.sql(driver));
 }
 
 void QOpAssignPrivate::bindValues(QVariantList &values) const

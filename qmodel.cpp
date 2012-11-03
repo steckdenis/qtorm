@@ -22,6 +22,7 @@
 
 #include "qmodel.h"
 #include "qfield_p.h"
+#include "qtormdatabase.h"
 
 #include <QVector>
 #include <QtSql>
@@ -130,8 +131,8 @@ QDateTimeField QModel::dateTimeField(const QString& name)
 
 void QModel::save(bool forceInsert)
 {
-    QSqlDriver *driver = QSqlDatabase::database().driver();
-    QSqlQuery query;
+    QSqlDriver *driver = QtOrmDatabase::threadDatabase().driver();
+    QSqlQuery query(QtOrmDatabase::threadDatabase());
 
     if (forceInsert || pk().isNull())
     {
@@ -217,8 +218,8 @@ void QModel::save(bool forceInsert)
 
 void QModel::remove()
 {
-    QSqlDriver *driver = QSqlDatabase::database().driver();
-    QSqlQuery query;
+    QSqlDriver *driver = QtOrmDatabase::threadDatabase().driver();
+    QSqlQuery query(QtOrmDatabase::threadDatabase());
 
     // DELETE the current object, and set pk() to NULL
     QString sql = QString("DELETE FROM %1 WHERE %2=?;")
