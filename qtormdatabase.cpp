@@ -1,13 +1,18 @@
 #include "qtormdatabase.h"
 
 static bool per_thread_database = false;
+static QtOrmDatabase::CreatorFunc creator_func = NULL;
+
 __thread QSqlDatabase *thread_database = NULL;
 
 QSqlDatabase QtOrmDatabase::threadDatabase()
 {
     // One database per thread, to avoid conflicts between threads and thread-non-safety of QtSql
-    if (per_thread_database && thread_database != NULL)
+    if (per_thread_database)
     {
+        if (!thread_database)
+            thread_database = new QSqlDatabase(creator_func());
+
         return *thread_database;
     }
     else
@@ -32,4 +37,9 @@ void QtOrmDatabase::setThreadDatabase(QSqlDatabase db)
 bool QtOrmDatabase::threadHasDatabase()
 {
     return (!per_thread_database || thread_database != NULL);
+}
+
+void QtOrmDatabase::setDatabaseCreator(QtOrmDatabase::CreatorFunc func)
+{
+    creator_func = func;
 }
