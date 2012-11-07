@@ -45,6 +45,7 @@ class QQuerySetPrivate
         void addFilter(const QWhere &cond);
         void addOrderBy(const QField &field, bool asc);
         void addField(const QField &field);
+        void addFields(QModel *model);
         void excludeField(const QField &field);
         void setLimit(int count);
         void setOffset(int val);
@@ -65,7 +66,7 @@ class QQuerySetPrivate
             bool accepts_null;
         };
 
-        void buildJoins(QVector<Join> &joins);
+        bool buildJoins(QVector<QQuerySetPrivate::Join> &joins, bool useSelectedFields);
         QVector<Join> buildSelectedFields(bool for_remove);
         QString buildSelect();
         QString buildFrom(const QVector<Join> &joins, bool for_remove);
@@ -81,6 +82,7 @@ class QQuerySetPrivate
 
         QVector<QField> _selected_fields;
         QSet<QField> _excluded_fields;
+        QSet<QModel *> _selected_models;
         QVector<QField> _select_related;
         QVector<QWhere> _filter;
         QVector<QPair<QField, bool> > _order_by;
@@ -125,6 +127,17 @@ void QQuerySetPrivate::addOrderBy(const QField &field, bool asc)
 void QQuerySetPrivate::addField(const QField &field)
 {
     _selected_fields.append(field);
+    _selected_models.insert(field.model());
+}
+
+void QQuerySetPrivate::addFields(QModel *model)
+{
+    int i, count = model->fieldsCount();
+
+    for (i=0; i<count; ++i)
+    {
+        addField(model->field(i));
+    }
 }
 
 void QQuerySetPrivate::excludeField(const QField &field)
@@ -148,13 +161,16 @@ QString QQuerySetPrivate::sql() const
 }
 
 
-void QQuerySetPrivate::buildJoins(QVector<Join> &joins)
+bool QQuerySetPrivate::buildJoins(QVector<Join> &joins, bool useSelectedFields)
 {
     // Model to explore
     Join &join = joins.last();
 
     // Allocate a table number for this model
     join.model->setTableNumber(joins.count());
+
+    // If one of the requested fields is in this model, we are useful
+    bool useful_join = _selected_models.contains(join.model);
 
     // Explore the foreign keys of this model
     QVector<QForeignKeyPrivate *> subkeys;
@@ -178,11 +194,33 @@ void QQuerySetPrivate::buildJoins(QVector<Join> &joins)
             new_join.parent_foreignkey = foreign_key;
             new_join.accepts_null = (foreign_key->acceptsNull() || join.accepts_null);
 
-            // Explore the new join
+            // Add the join to the list of joins to explore
             joins.append(new_join);
-            buildJoins(joins);
+
+            // Explore the joint. If we restrict ourself to the fields in
+            // _selected_fields, don't join with a table that has no field in
+            // our list.
+            if (useSelectedFields)
+            {
+                if (!buildJoins(joins, useSelectedFields))
+                {
+                    // No field used in this join, remove it from the list
+                    joins.resize(joins.size() - 1);
+                }
+                else
+                {
+                    useful_join = true;
+                }
+            }
+            else
+            {
+                // Inconditionnally build joins
+                buildJoins(joins, useSelectedFields);
+            }
         }
     }
+
+    return useful_join;
 }
 
 QVector<QQuerySetPrivate::Join> QQuerySetPrivate::buildSelectedFields(bool for_remove)
@@ -197,18 +235,15 @@ QVector<QQuerySetPrivate::Join> QQuerySetPrivate::buildSelectedFields(bool for_r
 
     joins.append(start_join);
 
-    // If we already have fields in _selected_fields, the user used addField
-    // and only want those
-    if (_selected_fields.count() != 0)
-        return joins;
-        // TODO: We have only one join here, even though the addField() calls could concern other tables.
-
-    // Explore the model
+    // Explore the model to build joins, but not when we remove as not all databases
+    // support that.
     if (!for_remove)
     {
-        // DELETE FROM doesn't accept joins for all databases, be consistent and
-        // always refuse.
-        buildJoins(joins);
+        buildJoins(joins, _selected_fields.count() != 0);
+
+        // If we use a user-supplied _selected_fields list, we are done
+        if (_selected_fields.count() != 0)
+            return joins;
     }
 
     // Add the fields of every join to the list of the fields
@@ -535,6 +570,21 @@ void QQuerySet::addFilter(const QWhere &cond)
 void QQuerySet::addOrderBy(const QField &field, bool asc)
 {
     d->addOrderBy(field, asc);
+}
+
+void QQuerySet::addField(const QField &field)
+{
+    d->addField(field);
+}
+
+void QQuerySet::addFields(QModel *model)
+{
+    d->addFields(model);
+}
+
+void QQuerySet::excludeField(const QField &field)
+{
+    d->excludeField(field);
 }
 
 void QQuerySet::setLimit(int count)

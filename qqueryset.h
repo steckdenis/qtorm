@@ -47,6 +47,13 @@ class QQuerySet
         void setLimit(int count);
         void setOffset(int val);
 
+        // Gestion des champs
+        void excludeField(const QField &field);
+        void addField(const QField &field);
+        void addFields(QModel *model);
+        template<typename T>
+        void addFields(const QForeignKey<T> &field);
+
         QString sql(bool for_remove = false);
         bool next();
         bool update(int *affectedRows = 0);
@@ -66,6 +73,14 @@ void QQuerySet::addSelectRelated(const QForeignKey<T> &field)
     field.checkValue();
 
     addSelectRelated_p(field);
+}
+
+template<typename T>
+void QQuerySet::addFields(const QForeignKey<T> &field)
+{
+    // Add fields for the model of this foreign key
+    addField(field);
+    addFields(field.value());
 }
 
 #endif
