@@ -184,7 +184,7 @@ bool QQuerySetPrivate::buildJoins(QVector<Join> &joins, bool useSelectedFields)
         QModel *target_model = foreign_key->value();
 
         // Ignore a field in the exclude list
-        if (_excluded_fields.contains(QField(foreign_key)))
+        if (_excluded_fields.contains(QField(foreign_key, true)))
             continue;
 
         if (target_model)
