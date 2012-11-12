@@ -508,6 +508,12 @@ bool QQuerySetPrivate::update(int *affectedRows)
         .arg(fields_part)
         .arg(buildWhere(false));
 
+    // Bind values for where
+    for (int i=0; i<_filter.count(); ++i)
+    {
+        _filter.at(i).bindValues(values);
+    }
+
     // Prepare and run the query
     _query.finish();
     _query.prepare(sql);
