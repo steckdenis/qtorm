@@ -113,6 +113,12 @@ class QFFlagSetWhere : public QWhere
         QFFlagSetWhere(const QField &left, int flag);
 };
 
+class QFNullWhere : public QWhere
+{
+    public:
+        QFNullWhere(const QField &left);
+};
+
 class QFIWhere : public QWhere
 {
     public:

@@ -362,6 +362,46 @@ QFFlagSetWhere::QFFlagSetWhere(const QField &left, int flag)
 }
 
 /*
+ * QFNullWhere
+ */
+class QFNullWherePrivate : public QWherePrivate
+{
+    public:
+        QFNullWherePrivate(const QField &left);
+        ~QFNullWherePrivate();
+
+        QString sql(QSqlDriver *driver) const;
+        void bindValues(QVariantList &values) const;
+
+    private:
+        QField _f;
+};
+
+QFNullWherePrivate::QFNullWherePrivate(const QField &left)
+: QWherePrivate(QWhere::Like), _f(left)
+{
+}
+
+QFNullWherePrivate::~QFNullWherePrivate()
+{
+}
+
+QString QFNullWherePrivate::sql(QSqlDriver *driver) const
+{
+    return QString("%1 IS NULL").arg(fieldName(_f, driver));
+}
+
+void QFNullWherePrivate::bindValues(QVariantList &values) const
+{
+    (void) values;
+}
+
+QFNullWhere::QFNullWhere(const QField &left)
+: QWhere(new QFNullWherePrivate(left))
+{
+}
+
+/*
  * QFIWhere
  */
 

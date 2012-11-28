@@ -55,6 +55,7 @@ class QF
         QWhere like(const QString &pattern) const;
         QWhere divisibleBy(int divisor, int offset) const;
         QWhere flagSet(int flag) const;
+        QWhere isNull() const;
 
         // QAssign integration
         QAssign operator+(const QAssign &other);

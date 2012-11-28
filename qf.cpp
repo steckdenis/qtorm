@@ -147,3 +147,8 @@ QWhere QF::flagSet(int flag) const
 {
     return QFFlagSetWhere(d->f, flag);
 }
+
+QWhere QF::isNull() const
+{
+    return QFNullWhere(d->f);
+}
