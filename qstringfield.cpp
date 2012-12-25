@@ -74,7 +74,7 @@ void QStringFieldPrivate::fromData(const QVariant &data)
 QVariant QStringFieldPrivate::data() const
 {
     if (isNull())
-        return QVariant(QVariant::String);
+        return QVariant();
     else
         return QVariant(_data);
 }

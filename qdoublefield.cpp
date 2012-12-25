@@ -67,7 +67,7 @@ void QDoubleFieldPrivate::fromData(const QVariant &data)
 QVariant QDoubleFieldPrivate::data() const
 {
     if (isNull())
-        return QVariant(QVariant::Double);
+        return QVariant();
     else
         return QVariant(_value);
 }

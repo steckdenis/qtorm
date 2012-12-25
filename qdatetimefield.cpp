@@ -67,7 +67,7 @@ void QDateTimeFieldPrivate::fromData(const QVariant &data)
 QVariant QDateTimeFieldPrivate::data() const
 {
     if (isNull())
-        return QVariant(QVariant::DateTime);
+        return QVariant();
     else
         return QVariant(_datetime);
 }

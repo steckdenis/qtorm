@@ -79,8 +79,8 @@ template<typename T>
 void QQuerySet::addFields(const QForeignKey<T> &field)
 {
     // Add fields for the model of this foreign key
-    addField(field);
     addFields(field.value());
+    addField(field);
 }
 
 #endif

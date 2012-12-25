@@ -67,7 +67,7 @@ void QIntFieldPrivate::fromData(const QVariant &data)
 QVariant QIntFieldPrivate::data() const
 {
     if (isNull())
-        return QVariant(QVariant::Int);
+        return QVariant();
     else
         return QVariant(_value);
 }
