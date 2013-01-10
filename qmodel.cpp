@@ -139,10 +139,14 @@ void QModel::save(bool forceInsert)
         // Build the fields list and placeholder lists, skip the primary key
         QString field_list;
         QString placeholders;
+        bool first = true;
 
-        for (int i=1; i<d->fields.size(); ++i)
+        for (int i=0; i<d->fields.size(); ++i)
         {
-            if (i != 1)
+            if (d->fields.at(i).primaryKey())
+                continue;
+
+            if (!first)
             {
                 field_list += QLatin1String(", ");
                 placeholders += QLatin1String(", ");
@@ -150,6 +154,7 @@ void QModel::save(bool forceInsert)
 
             field_list += driver->escapeIdentifier(d->fields.at(i).name(), QSqlDriver::FieldName);
             placeholders += QLatin1String("?");
+            first = false;
         }
 
         // INSERT query
@@ -160,10 +165,9 @@ void QModel::save(bool forceInsert)
 
         query.prepare(sql);
 
-        for (int i=1; i<d->fields.size(); ++i)
-        {
-            query.addBindValue(d->fields.at(i).data());
-        }
+        for (int i=0; i<d->fields.size(); ++i)
+            if (!d->fields.at(i).primaryKey())
+                query.addBindValue(d->fields.at(i).data());
 
         if (!query.exec())
         {
@@ -179,10 +183,10 @@ void QModel::save(bool forceInsert)
         QString values;
         bool first = true;
 
-        for (int i=1; i<d->fields.size(); ++i)
+        for (int i=0; i<d->fields.size(); ++i)
         {
             // Ne pas mettre à jour les champs non modifiés
-            if (!d->fields.at(i).isModified())
+            if (!d->fields.at(i).isModified() || d->fields.at(i).primaryKey())
                 continue;
 
             if (!first)
@@ -201,9 +205,9 @@ void QModel::save(bool forceInsert)
 
         query.prepare(sql);
 
-        for (int i=1; i<d->fields.size(); ++i)
+        for (int i=0; i<d->fields.size(); ++i)
         {
-            if (d->fields.at(i).isModified())
+            if (d->fields.at(i).isModified() && !d->fields.at(i).primaryKey())
                 query.addBindValue(d->fields.at(i).data());
         }
 
@@ -263,7 +267,7 @@ QString QModel::createTableSql() const
 
 void QModel::getForeignKeys(QVector<QForeignKeyPrivate *> &foreignKeys) const
 {
-    for (int i=1; i<d->fields.size(); ++i)
+    for (int i=0; i<d->fields.size(); ++i)
     {
         if (d->fields.at(i).d->isForeignKey())
         {
@@ -274,7 +278,7 @@ void QModel::getForeignKeys(QVector<QForeignKeyPrivate *> &foreignKeys) const
 
 void QModel::resetModified()
 {
-    for (int i=1; i<d->fields.size(); ++i)
+    for (int i=0; i<d->fields.size(); ++i)
     {
         d->fields[i].setModified(false);
     }
