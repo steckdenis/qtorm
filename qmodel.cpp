@@ -143,7 +143,7 @@ void QModel::save(bool forceInsert)
 
         for (int i=0; i<d->fields.size(); ++i)
         {
-            if (d->fields.at(i).primaryKey())
+            if (d->fields.at(i).primaryKey() && d->fields.at(i).isNull())
                 continue;
 
             if (!first)
@@ -166,7 +166,7 @@ void QModel::save(bool forceInsert)
         query.prepare(sql);
 
         for (int i=0; i<d->fields.size(); ++i)
-            if (!d->fields.at(i).primaryKey())
+            if (!(d->fields.at(i).primaryKey() && d->fields.at(i).isNull()))
                 query.addBindValue(d->fields.at(i).data());
 
         if (!query.exec())
@@ -186,7 +186,7 @@ void QModel::save(bool forceInsert)
         for (int i=0; i<d->fields.size(); ++i)
         {
             // Ne pas mettre à jour les champs non modifiés
-            if (!d->fields.at(i).isModified() || d->fields.at(i).primaryKey())
+            if (!d->fields.at(i).isModified())
                 continue;
 
             if (!first)
@@ -207,7 +207,7 @@ void QModel::save(bool forceInsert)
 
         for (int i=0; i<d->fields.size(); ++i)
         {
-            if (d->fields.at(i).isModified() && !d->fields.at(i).primaryKey())
+            if (d->fields.at(i).isModified())
                 query.addBindValue(d->fields.at(i).data());
         }
 
