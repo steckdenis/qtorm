@@ -1,4 +1,8 @@
+cmake_minimum_required(VERSION 2.6)
 project(qtorm)
+
+find_package(Qt4 REQUIRED)
+include(GNUInstallDirs)
 
 add_definitions(-fPIC)
 
@@ -40,16 +44,24 @@ set(qtorm_HEADERS
     qqueryset.h
     qstringfield.h
     qwhere.h
-    qtormdatabase.cpp
+    qtormdatabase.h
 )
 
 # Automoc
 qt4_automoc(${qtorm_SRCS})
 
-# Bibliothèque statique
-add_library(qtorm_static STATIC ${qtorm_SRCS})
-handle_pch(qtorm_static)
+# Shared library
+add_library(qtorm SHARED ${qtorm_SRCS})
 
-# Installation
-install(TARGETS qtorm_static ARCHIVE DESTINATION /usr/lib)
-install(FILES ${qtorm_HEADERS} DESTINATION /usr/include/qtorm)
+set_target_properties(qtorm PROPERTIES
+    VERSION 0.1.0
+    SOVERSION 0.1.0
+)
+target_link_libraries(qtorm
+    ${QT_QTCORE_LIBRARY}
+    ${QT_QTSQL_LIBRARY}
+)
+
+
+install(TARGETS qtorm LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES ${qtorm_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qtorm)

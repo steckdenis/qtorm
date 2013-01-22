@@ -49,7 +49,7 @@ class QField
         QField();
         QField(const QField &other);
         QField &operator=(const QField &other);
-        virtual ~QField();
+        ~QField();
 
         inline bool operator==(const QField &other) const { return d == other.d; }
 
