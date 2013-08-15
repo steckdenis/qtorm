@@ -50,6 +50,11 @@ class QModel
         QField &pk() const;
         QString tableName() const;
 
+        void clearBatch();
+        void addInBatch();
+        void saveBatch();
+
+        void setTableName(const QString &tableName);
         void save(bool forceInsert=false);
         void remove();
         void resetModified();

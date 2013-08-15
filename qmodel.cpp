@@ -25,6 +25,8 @@
 #include "qtormdatabase.h"
 
 #include <QVector>
+#include <QList>
+#include <QVariant>
 #include <QtSql>
 #include <QtDebug>
 
@@ -40,17 +42,24 @@ struct QModel::Private
 
     QVector<QField> fields;
     QField primaryKey;
+
+    QList<QVariantList> batch;
 };
 
 QModel::QModel(const QString &tableName)
 : d(new QModel::Private())
 {
-    d->db_table = tableName;
+    setTableName(tableName);
 }
 
 QModel::~QModel()
 {
     delete d;
+}
+
+void QModel::setTableName(const QString &tableName)
+{
+    d->db_table = tableName;
 }
 
 void QModel::init()
@@ -129,6 +138,78 @@ QDateTimeField QModel::dateTimeField(const QString& name)
     return rs;
 }
 
+void QModel::clearBatch()
+{
+    d->batch.clear();
+}
+
+void QModel::addInBatch()
+{
+    QVariantList row;
+
+    // Snapshot the current values and put them into a new batch row
+    for (int i=0; i<d->fields.size(); ++i)
+        if (!(d->fields.at(i).primaryKey() && d->fields.at(i).isNull()))
+            row.append(d->fields.at(i).data());
+
+    d->batch.append(row);
+}
+
+void QModel::saveBatch()
+{
+    QSqlDriver *driver = QtOrmDatabase::threadDatabase().driver();
+    QSqlQuery query(QtOrmDatabase::threadDatabase());
+
+    // Build the fields list and placeholder lists, skip the primary key
+    QString field_list;
+    QString placeholders;
+    bool first = true;
+
+    for (int i=0; i<d->fields.size(); ++i)
+    {
+        if (d->fields.at(i).primaryKey() && d->fields.at(i).isNull())
+            continue;
+
+        if (!first)
+        {
+            field_list += QLatin1String(", ");
+            placeholders += QLatin1String(", ");
+        }
+
+        field_list += driver->escapeIdentifier(d->fields.at(i).name(), QSqlDriver::FieldName);
+        placeholders += QLatin1String("?");
+        first = false;
+    }
+
+    // Multiply placeholders (change "?, ?" to "(?, ?), (?, ?), etc")
+    placeholders = QString("(%1), ").arg(placeholders);
+    placeholders = placeholders.repeated(d->batch.size());
+    placeholders.resize(placeholders.size() - 2);   // Remove the last ", "
+
+    // INSERT query
+    QString sql = QString("INSERT INTO %1 (%2) VALUES %3;")
+        .arg(driver->escapeIdentifier(d->db_table, QSqlDriver::TableName))
+        .arg(field_list)
+        .arg(placeholders);
+
+    query.prepare(sql);
+
+    // Bind the values
+
+    for (int i=0; i<d->batch.size(); ++i)
+        for (int j=0; j<d->fields.size(); ++j)
+            if (!(d->fields.at(j).primaryKey() && d->fields.at(j).isNull()))
+                query.addBindValue(d->batch.at(i).at(j));
+
+    if (!query.exec())
+    {
+        qDebug() << "Could not save object :" << query.lastError();
+    }
+
+    // Set the id
+    pk().fromData(query.lastInsertId());
+}
+
 void QModel::save(bool forceInsert)
 {
     QSqlDriver *driver = QtOrmDatabase::threadDatabase().driver();
@@ -136,46 +217,10 @@ void QModel::save(bool forceInsert)
 
     if (forceInsert || pk().isNull())
     {
-        // Build the fields list and placeholder lists, skip the primary key
-        QString field_list;
-        QString placeholders;
-        bool first = true;
-
-        for (int i=0; i<d->fields.size(); ++i)
-        {
-            if (d->fields.at(i).primaryKey() && d->fields.at(i).isNull())
-                continue;
-
-            if (!first)
-            {
-                field_list += QLatin1String(", ");
-                placeholders += QLatin1String(", ");
-            }
-
-            field_list += driver->escapeIdentifier(d->fields.at(i).name(), QSqlDriver::FieldName);
-            placeholders += QLatin1String("?");
-            first = false;
-        }
-
-        // INSERT query
-        QString sql = QString("INSERT INTO %1 (%2) VALUES (%3);")
-            .arg(driver->escapeIdentifier(d->db_table, QSqlDriver::TableName))
-            .arg(field_list)
-            .arg(placeholders);
-
-        query.prepare(sql);
-
-        for (int i=0; i<d->fields.size(); ++i)
-            if (!(d->fields.at(i).primaryKey() && d->fields.at(i).isNull()))
-                query.addBindValue(d->fields.at(i).data());
-
-        if (!query.exec())
-        {
-            qDebug() << "Could not save object :" << query.lastError();
-        }
-
-        // Set the id
-        pk().fromData(query.lastInsertId());
+        // Create a new entry in the database
+        clearBatch();
+        addInBatch();
+        saveBatch();
     }
     else
     {
