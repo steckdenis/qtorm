@@ -195,12 +195,14 @@ void QModel::saveBatch()
     query.prepare(sql);
 
     // Bind the values
-    int field_index_in_batch = 0;
-
     for (int i=0; i<d->batch.size(); ++i)
+    {
+        int field_index_in_batch = 0;
+
         for (int j=0; j<d->fields.size(); ++j)
             if (!(d->fields.at(j).primaryKey() && d->fields.at(j).isNull()))
                 query.addBindValue(d->batch.at(i).at(field_index_in_batch++));
+    }
 
     if (!query.exec())
     {
