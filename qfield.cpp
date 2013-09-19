@@ -262,7 +262,7 @@ bool QField::primaryKey() const
     return d->primaryKey();
 }
 
-void QField::fromData(const QVariant &data)
+void QField::setRawData(const QVariant &data)
 {
     d->fromData(data);
 }

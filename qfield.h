@@ -75,6 +75,8 @@ class QField
         bool isValid() const;
         bool isModified() const;
 
+        void setRawData(const QVariant &data);
+
         // Parameters
         void setAcceptsNull(bool null);
         bool acceptsNull() const;
@@ -93,7 +95,6 @@ class QField
         void setNull(bool null);
         void setModified(bool modified);
 
-        void fromData(const QVariant &data);
         QModel *model() const;
 
         QString sqlDescription() const;

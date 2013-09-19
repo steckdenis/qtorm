@@ -210,7 +210,7 @@ void QModel::saveBatch()
     }
 
     // Set the id
-    pk().fromData(query.lastInsertId());
+    pk().setRawData(query.lastInsertId());
 }
 
 void QModel::save(bool forceInsert)

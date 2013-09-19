@@ -456,7 +456,7 @@ bool QQuerySetPrivate::next()
     // Get a row from the query and populate the model with it
     for (int i=0; i<_selected_fields.count(); ++i)
     {
-        _selected_fields[i].fromData(_query.value(i));
+        _selected_fields[i].setRawData(_query.value(i));
     }
 
     return true;
