@@ -66,10 +66,10 @@ class QQuerySetPrivate
             bool accepts_null;
         };
 
-        bool buildJoins(QVector<QQuerySetPrivate::Join> &joins, bool useSelectedFields);
-        QVector<Join> buildSelectedFields(bool for_remove);
+        bool buildJoins(QList<QQuerySetPrivate::Join> &joins, bool useSelectedFields);
+        QList<Join> buildSelectedFields(bool for_remove);
         QString buildSelect();
-        QString buildFrom(const QVector<Join> &joins, bool for_remove);
+        QString buildFrom(const QList<Join> &joins, bool for_remove);
         QString buildWhere(bool for_remove);
         QString buildOrderBy();
         QString buildLimit();
@@ -161,7 +161,7 @@ QString QQuerySetPrivate::sql() const
 }
 
 
-bool QQuerySetPrivate::buildJoins(QVector<Join> &joins, bool useSelectedFields)
+bool QQuerySetPrivate::buildJoins(QList<Join> &joins, bool useSelectedFields)
 {
     // Model to explore
     Join &join = joins.last();
@@ -205,7 +205,7 @@ bool QQuerySetPrivate::buildJoins(QVector<Join> &joins, bool useSelectedFields)
                 if (!buildJoins(joins, useSelectedFields))
                 {
                     // No field used in this join, remove it from the list
-                    joins.resize(joins.size() - 1);
+                    joins.removeLast();
                 }
                 else
                 {
@@ -223,10 +223,10 @@ bool QQuerySetPrivate::buildJoins(QVector<Join> &joins, bool useSelectedFields)
     return useful_join;
 }
 
-QVector<QQuerySetPrivate::Join> QQuerySetPrivate::buildSelectedFields(bool for_remove)
+QList<QQuerySetPrivate::Join> QQuerySetPrivate::buildSelectedFields(bool for_remove)
 {
     // First join we always have
-    QVector<Join> joins;
+    QList<Join> joins;
     Join start_join;
 
     start_join.model = _model;
@@ -285,7 +285,7 @@ QString QQuerySetPrivate::buildSelect()
     return rs;
 }
 
-QString QQuerySetPrivate::buildFrom(const QVector<Join> &joins, bool for_remove)
+QString QQuerySetPrivate::buildFrom(const QList<Join> &joins, bool for_remove)
 {
     QString rs;
 
@@ -391,7 +391,7 @@ void QQuerySetPrivate::build(bool for_remove)
     _built = true;
 
     // Joins used throughout
-    QVector<QQuerySetPrivate::Join> joins = buildSelectedFields(for_remove);
+    QList<QQuerySetPrivate::Join> joins = buildSelectedFields(for_remove);
 
 
     // Build the query
