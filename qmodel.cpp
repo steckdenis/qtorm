@@ -157,6 +157,9 @@ void QModel::addInBatch()
 
 void QModel::saveBatch()
 {
+    if (d->batch.size() == 0)
+        return;
+
     QSqlDriver *driver = QtOrmDatabase::threadDatabase().driver();
     QSqlQuery query(QtOrmDatabase::threadDatabase());
 
